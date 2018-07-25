@@ -13,3 +13,8 @@ npm install
 ```
 npm run dev
 ```
+
+Para evitar que este reinicie el servidor cada vez que cambiemos los valores en el json usamos:
+```
+$ nodemon server/server -e js,html
+```

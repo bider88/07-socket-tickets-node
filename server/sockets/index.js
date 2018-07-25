@@ -1,31 +1,33 @@
 const { io } = require('../server');
+const { TicketControl } = require('../classes/ticket-control');
+
+const ticketControl = new TicketControl();
 
 io.on('connection', (client) => {
     console.log('client connected');
 
-    client.emit('sendMessage', {
-        user: 'Admin',
-        message: 'Bienvenido a esta app'
+    client.emit('currentState', {
+        current: ticketControl.getLastTicket(),
+        lastFour: ticketControl.getLastFour()
     })
 
-    client.on('disconnect', () => {
-        console.log('client disconnected');
+    client.on('attendTicket', (data, callback) => {
+
+        if ( !data.desktop ) return callback(  { err: true, message: 'El escritorio es requerido' } );
+
+        const attendTicket = ticketControl.attendTicket(data.desktop);
+
+        callback( attendTicket );
+
+        client.broadcast.emit('lastFour', {
+            lastFour: ticketControl.getLastFour()
+        })
     })
 
-    // Listen client
-    client.on('sendMessage', (data, callback) => {
-        console.log(data);
-
-        client.broadcast.emit('sendMessage', data);
-        
-        // if (msg.user) {
-        //     callback({
-        //         resp: 'todo bien'
-        //     })
-        // } else {
-        //     callback({
-        //         resp: 'todo mal'
-        //     })
-        // }
+    client.on('nextTicket', (data, callback) => {
+        const next = ticketControl.next();
+        console.log(next);
+        callback(next);
     })
+
 })
